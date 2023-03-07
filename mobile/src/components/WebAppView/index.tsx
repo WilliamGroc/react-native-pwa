@@ -1,24 +1,19 @@
-import React, {useRef} from 'react';
-import {useLayoutEffect} from 'react';
+import React, {useContext, useRef} from 'react';
 import WebView from 'react-native-webview';
-import {eventManager} from '../../utils/events';
+import {EventContext} from '../../utils/events';
 
 type Props = {
   uri: string;
 };
 
 export const WebAppView: React.FC<Props> = ({uri}) => {
-  const webviewRef = useRef();
+  const webviewRef = useRef(null);
 
-  useLayoutEffect(() => {
-    if (webviewRef.current) {
-      eventManager.setWebviewRef(webviewRef.current);
-    }
-  });
+  const eventmanager = useContext(EventContext);
 
   return (
     <WebView
-      ref={webviewRef.current}
+      ref={webviewRef}
       style={{flex: 1}}
       source={{uri}}
       scalesPageToFit
@@ -28,7 +23,12 @@ export const WebAppView: React.FC<Props> = ({uri}) => {
       sharedCookiesEnabled={true}
       thirdPartyCookiesEnabled={true}
       javaScriptEnabled={true}
-      onMessage={eventManager.listenEvent}
+      onMessage={eventmanager?.listenEvent}
+      onLoadEnd={() => {
+        if (webviewRef.current) {
+          eventmanager?.setWebviewRef(webviewRef.current);
+        }
+      }}
     />
   );
 };

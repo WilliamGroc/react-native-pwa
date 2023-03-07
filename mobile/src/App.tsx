@@ -3,10 +3,12 @@ import RNFS from 'react-native-fs';
 import StaticServer from 'react-native-static-server';
 import {downloadSources} from './utils/webapp';
 import {Loader, WebAppView} from './components';
+import {EventContext, useEventManager} from './utils/events';
 
 function App(): JSX.Element {
   const server = useRef<any>();
   const [uri, setUrI] = useState<string>();
+  const eventManager = useEventManager();
 
   useEffect(() => {
     (async () => {
@@ -30,7 +32,11 @@ function App(): JSX.Element {
     };
   }, []);
 
-  return uri ? <WebAppView uri={uri} /> : <Loader />;
+  return (
+    <EventContext.Provider value={eventManager}>
+      {uri ? <WebAppView uri={uri} /> : <Loader />}
+    </EventContext.Provider>
+  );
 }
 
 export default App;

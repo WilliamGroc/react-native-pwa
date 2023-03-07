@@ -6,10 +6,14 @@ const state = reactive<{message: any | null}>({ message: null })
 
 // register an event listener
 window.addEventListener("message", message => {
-  const mes = JSON.stringify(message);
-  state.message = mes
-  alert(mes)
+  try{
+    state.message = (message as any).detail.type;
+  }
+  catch(e){
+    state.message = e;
+  }
 });
+
 </script>
 
 <template>
