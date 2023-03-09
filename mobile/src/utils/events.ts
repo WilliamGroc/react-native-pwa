@@ -1,10 +1,14 @@
 import {createContext, useRef} from 'react';
+import {Peripheral} from 'react-native-ble-manager';
 import {WebViewMessageEvent} from 'react-native-webview';
+import {useBluetooth} from './bluetooth';
 import {getStore, saveStore} from './storage';
 
 export enum Event {
   SAVE_DATA = 'SAVE_DATA',
   GET_DATA = 'GET_DATA',
+  BL_SCAN = 'BL_SCAN',
+  BL_SCAN_RESULT = 'BL_SCAN_RESULT',
 }
 
 export interface EventMessage {
@@ -21,11 +25,18 @@ export function useEventManager() {
     webviewRef.current = ref;
   };
 
+  const handleScanResult = (peripherals: Peripheral[]) => {
+    sendEvent(Event.BL_SCAN_RESULT, peripherals);
+  };
+
+  const bluetooth = useBluetooth(handleScanResult);
+
   const sendEvent = (event: Event, data: any) => {
     const message = {
       type: event,
       data,
     };
+    console.log('sendEvent');
     console.log(message);
     webviewRef.current?.injectJavaScript(
       `window.dispatchEvent(new CustomEvent('message', {detail: ${JSON.stringify(
@@ -47,6 +58,10 @@ export function useEventManager() {
         console.log('get data');
         const data = await getStore();
         sendEvent(Event.GET_DATA, data);
+        break;
+      case Event.BL_SCAN:
+        console.log('Start bluetooth scan');
+        bluetooth.launchScan();
         break;
     }
   };

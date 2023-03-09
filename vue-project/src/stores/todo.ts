@@ -7,7 +7,7 @@ export interface Todo {
   completed: boolean;
 }
 
-export const useStore = defineStore('todo', {
+export const useTodo = defineStore('todo', {
   state: () => ({
     todos: [] as Todo[]
   }),

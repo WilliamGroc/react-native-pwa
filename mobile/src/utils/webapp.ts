@@ -16,71 +16,76 @@ async function isOnline() {
 export async function downloadSources() {
   const webappIsOnline = await isOnline();
   if (!webappIsOnline) {
+    console.log('App is offline');
     return;
   }
 
-  const data = await (await fetch(`${WEBAPP_URL}/index.html`)).text();
+  try {
+    const data = await (await fetch(`${WEBAPP_URL}/index.html`)).text();
 
-  const filesToDownload = data.match(/(?<=href="|src=").*?(?=")/gm);
+    const filesToDownload = data.match(/(?<=href="|src=").*?(?=")/gm);
 
-  if (!filesToDownload) {
-    throw new Error('No file to download');
-  }
-
-  await RNFS.mkdir(RNFS.DocumentDirectoryPath + '/www');
-  await RNFS.mkdir(RNFS.DocumentDirectoryPath + '/www/assets');
-
-  for (let path of filesToDownload) {
-    const file = await fetch(`${WEBAPP_URL}${path}`);
-
-    let likedFiles = [path];
-
-    if (path.includes('.js')) {
-      const fileStr = await file.text();
-
-      const svgFiles = fileStr
-        .match(/(?="\/).*?(?=svg")/gm)
-        ?.map(filePath => filePath.replace('"', '') + 'svg');
-      const cssFiles = fileStr
-        .match(/(?="\/).*?(?=css")/gm)
-        ?.map(filePath => filePath.replace('"', '') + 'css');
-      const jsFiles = fileStr
-        .match(/(?="\/).*?(?=js")/gm)
-        ?.map(filePath => filePath.replace('"', '') + 'js');
-      const pngFiles = fileStr
-        .match(/(?="\/).*?(?=png")/gm)
-        ?.map(filePath => filePath.replace('"', '') + 'png');
-
-      likedFiles = [
-        ...likedFiles,
-        ...(svgFiles || []),
-        ...(cssFiles || []),
-        ...(jsFiles || []),
-        ...(pngFiles || []),
-      ];
+    if (!filesToDownload) {
+      throw new Error('No file to download');
     }
 
-    await Promise.all(
-      likedFiles.map(
-        async fileToDownload =>
-          await RNFS.downloadFile({
-            fromUrl: `${WEBAPP_URL}${fileToDownload}`,
-            toFile: RNFS.DocumentDirectoryPath + '/www' + fileToDownload,
-            begin: res =>
-              console.log(
-                'Begin Download file',
-                fileToDownload,
-                res.statusCode,
-              ),
-          }),
-      ),
-    );
-  }
+    await RNFS.mkdir(RNFS.DocumentDirectoryPath + '/www');
+    await RNFS.mkdir(RNFS.DocumentDirectoryPath + '/www/assets');
 
-  await RNFS.downloadFile({
-    fromUrl: `${WEBAPP_URL}/index.html`,
-    toFile: RNFS.DocumentDirectoryPath + '/www/index.html',
-    begin: res =>
-      console.log('Begin Download file', 'index.html', res.statusCode),
-  });
+    for (let path of filesToDownload) {
+      const file = await fetch(`${WEBAPP_URL}${path}`);
+
+      let likedFiles = [path];
+
+      if (path.includes('.js')) {
+        const fileStr = await file.text();
+
+        const svgFiles = fileStr
+          .match(/(?="\/).*?(?=svg")/gm)
+          ?.map(filePath => filePath.replace('"', '') + 'svg');
+        const cssFiles = fileStr
+          .match(/(?="\/).*?(?=css")/gm)
+          ?.map(filePath => filePath.replace('"', '') + 'css');
+        const jsFiles = fileStr
+          .match(/(?="\/).*?(?=js")/gm)
+          ?.map(filePath => filePath.replace('"', '') + 'js');
+        const pngFiles = fileStr
+          .match(/(?="\/).*?(?=png")/gm)
+          ?.map(filePath => filePath.replace('"', '') + 'png');
+
+        likedFiles = [
+          ...likedFiles,
+          ...(svgFiles || []),
+          ...(cssFiles || []),
+          ...(jsFiles || []),
+          ...(pngFiles || []),
+        ];
+      }
+
+      await Promise.all(
+        likedFiles.map(
+          async fileToDownload =>
+            await RNFS.downloadFile({
+              fromUrl: `${WEBAPP_URL}${fileToDownload}`,
+              toFile: RNFS.DocumentDirectoryPath + '/www' + fileToDownload,
+              begin: res =>
+                console.log(
+                  'Begin Download file',
+                  fileToDownload,
+                  res.statusCode,
+                ),
+            }),
+        ),
+      );
+    }
+
+    await RNFS.downloadFile({
+      fromUrl: `${WEBAPP_URL}/index.html`,
+      toFile: RNFS.DocumentDirectoryPath + '/www/index.html',
+      begin: res =>
+        console.log('Begin Download file', 'index.html', res.statusCode),
+    });
+  } catch (e) {
+    console.log('Download file fail', e);
+  }
 }

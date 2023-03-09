@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import { RouterLink, RouterView } from 'vue-router'
+import { usePeripheral } from './stores/peripheric';
+
+const storePeripheral = usePeripheral();
 
 const state = reactive<{message: any | null}>({ message: null })
 
 // register an event listener
 window.addEventListener("message", message => {
   try{
-    state.message = (message as any).detail.type;
+    const type = (message as any).detail.type;
+
+    switch(type){
+      case 'BL_SCAN_RESULT':
+        alert((message as any).detail.data)
+      storePeripheral.setPeripherals((message as any).detail.data);
+    }
   }
   catch(e){
     state.message = e;

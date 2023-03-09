@@ -1,0 +1,14 @@
+{
+  "name": "ble-mock",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bleno": "npm:@abandonware/bleno@^0.5.1-4"
+  }
+}
